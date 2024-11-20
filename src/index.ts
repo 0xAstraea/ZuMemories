@@ -17,8 +17,8 @@ const siteConfig = {
 // Define the server config
 const serverConfig: ServerConfig = {
   hostname: process.env.HOSTNAME || "localhost",
-  port: parseInt(process.env.PORT || "3000"),
-  mintUrl: process.env.MINT_URL || "http://localhost:3000/api/sign",
+  port: parseInt(process.env.PORT || "4000"),
+  mintUrl: process.env.MINT_URL || "https://lastlightbringer.xyz/api/sign",
   zupassUrl: process.env.ZUPASS_URL || "https://zupass.org",
   defaultPrivateKey: process.env.DEFAULT_PRIVATE_KEY || "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
 };
@@ -60,7 +60,22 @@ const app = new Elysia()
         const pod = createSignedPOD(podEntries, SIGNING_KEY);
         const mintLink = await mintUrlGenerator(pod, body.folderName);
         
-        return { success: true, mintLink };
+        // Store the POD data
+        podStore[pod.contentID.toString(16)] = {
+          podEntries,
+          signerPrivateKey: SIGNING_KEY,
+          podFolder: body.folderName,
+          mintLink
+        };
+
+        // Save PODs to persistent storage if needed
+        await savePODs(podStore);
+        
+        return { 
+          success: true, 
+          mintLink,
+          contentID: pod.contentID.toString(16)  // Return contentID to client
+        };
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         return { success: false, error: errorMessage };
@@ -87,23 +102,44 @@ const app = new Elysia()
           body.semaphoreSignaturePCD.pcd
         ) as SemaphoreSignaturePCD;
 
-        // Validate timestamp from the signature
-        const signedMessage = JSON.parse(pcd.claim.signedMessage);
-        const signatureTimestamp = signedMessage.timestamp;
-        const currentTime = Date.now();
-        const FIVE_MINUTES = 5 * 60 * 1000;
-
-        if (currentTime - signatureTimestamp > FIVE_MINUTES) {
-          throw new Error("Signature has expired");
+        // Get the stored POD request
+        const podSignRequest = podStore[contentIDString];
+        if (!podSignRequest) {
+          throw new Error("Invalid content ID");
         }
 
-        // Create POD with owner commitment from the signature
-        const mintedPOD = await mintPOD(
-          contentIDString,
-          pcd
-        );
+        // Debug logging of raw message
+        console.log('Raw signed message:', pcd.claim.signedMessage);
+        
+        let signedMessage;
+        try {
+          signedMessage = JSON.parse(pcd.claim.signedMessage);
+        } catch (e) {
+          console.error('Failed to parse signed message:', e);
+          console.log('Message length:', pcd.claim.signedMessage.length);
+          throw new Error(`Invalid signed message format: ${(e as Error).message}`);
+        }
 
-      
+        console.log('Parsed signed message:', signedMessage);
+        console.log('Current time:', Date.now());
+        console.log('Signature time:', signedMessage.timestamp);
+        
+        // Create new POD entries with all the original fields plus owner and timestamp
+        const finalPodEntries: PODEntries = {
+          ...podSignRequest.podEntries,  // Include all original entries
+          owner: {
+            type: "cryptographic",
+            value: BigInt(pcd.claim.identityCommitment)
+          },
+          timestamp: {
+            type: "string",
+            value: new Date().toISOString()
+          }
+        };
+
+        // Create the final POD with all entries
+        const mintedPOD = POD.sign(finalPodEntries, SIGNING_KEY);
+        
         const mintedPODPCD = new PODPCD(crypto.randomUUID(), mintedPOD);
         const serializedPODPCD = await PODPCDPackage.serialize(mintedPODPCD);
         
