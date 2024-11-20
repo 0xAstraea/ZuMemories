@@ -1,3 +1,5 @@
+import { PODEntries } from "@pcd/pod";
+
 export type ServerConfig = {
   hostname: string;
   port: number;
@@ -5,3 +7,15 @@ export type ServerConfig = {
   zupassUrl: string;
   defaultPrivateKey: string;
 };
+
+export interface PODStore {
+  [contentId: string]: {
+    podEntries: PODEntries;
+    signerPrivateKey: string;
+    podFolder: string;
+    mintLink: string;
+    nullifiers?: {
+      [nullifierHash: string]: boolean;
+    };
+  }
+}

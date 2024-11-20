@@ -4,7 +4,7 @@ import { createMintUrl, createSignedPOD, mintPOD } from "./utils";
 import { POD, PODEntries, podEntriesFromJSON } from "@pcd/pod";
 import { PODPCD, PODPCDPackage } from "@pcd/pod-pcd";
 import { SemaphoreSignaturePCD, SemaphoreSignaturePCDPackage } from "@pcd/semaphore-signature-pcd";
-import { ServerConfig } from "./types";
+import { PODStore, ServerConfig } from "./types";
 
 // Define site config
 const siteConfig = {
@@ -25,6 +25,14 @@ const serverConfig: ServerConfig = {
 
 // Use the same key for signing
 const SIGNING_KEY = process.env.SIGNING_KEY || "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
+
+// At the top of your file
+const podStore: PODStore = {};
+
+// Function to save PODs (you'll need to implement this based on your storage needs)
+const savePODs = async (store: PODStore) => {
+  // Save to file/database
+};
 
 const app = new Elysia()
   .use(cors({
@@ -79,13 +87,23 @@ const app = new Elysia()
           body.semaphoreSignaturePCD.pcd
         ) as SemaphoreSignaturePCD;
 
-        // TODO: Timestamp check for Semaphore signature PCD.
+        // Validate timestamp from the signature
+        const signedMessage = JSON.parse(pcd.claim.signedMessage);
+        const signatureTimestamp = signedMessage.timestamp;
+        const currentTime = Date.now();
+        const FIVE_MINUTES = 5 * 60 * 1000;
 
+        if (currentTime - signatureTimestamp > FIVE_MINUTES) {
+          throw new Error("Signature has expired");
+        }
+
+        // Create POD with owner commitment from the signature
         const mintedPOD = await mintPOD(
           contentIDString,
           pcd
         );
 
+      
         const mintedPODPCD = new PODPCD(crypto.randomUUID(), mintedPOD);
         const serializedPODPCD = await PODPCDPackage.serialize(mintedPODPCD);
         
