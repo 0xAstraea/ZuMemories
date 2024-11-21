@@ -82,9 +82,9 @@ const app = new Elysia()
         await savePODs(podStore);
         
         return { 
-          success: true, 
+          // success: true, 
           mintLink,
-          contentID: pod.contentID.toString(16)
+          // contentID: pod.contentID.toString(16)
         };
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
