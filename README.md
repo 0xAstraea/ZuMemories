@@ -32,12 +32,62 @@ ZuMemories is a bridge between Omi's AI-powered conversations and Zupass's verif
 - Maintain a verifiable record of professional interactions
 
 ## Development
+
+### Installation
+To install dependencies:
+```bash
+bun install
+```
+
+### Running the Server
 To start the development server run:
 ```bash
 bun run dev
 ```
 
 The server will start on http://localhost:4000/
+
+### API Endpoints
+
+#### Create POD
+`POST /create-pod`
+
+Request body (JSON):
+```json
+{
+  "id": string,
+  "created_at": string,
+  "structured": {
+    "title": string,
+    "overview": string,
+    "emoji": string,
+    "category": string,
+    "actionItems": any[],
+    "events": any[]
+  },
+  "started_at": string,
+  "finished_at": string,
+  "transcript_segments": [
+    {
+      "text": string,
+      "speaker": string,
+      "speaker_id": number,
+      "is_user": boolean,
+      "start": number,
+      "end": number
+    }
+  ],
+  "plugins_results": any[],
+  "geolocation": null | object,
+  "photos": any[],
+  "discarded": boolean,
+  "deleted": boolean,
+  "source": string,
+  "language": string,
+  "external_data": null | object,
+  "status": string
+}
+```
 
 ## Technical Stack
 - Built with Elysia and Bun runtime
