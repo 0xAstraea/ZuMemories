@@ -2,20 +2,6 @@
 
 ZuMemories is a bridge between Omi's AI-powered conversations and Zupass's verifiable credentials system. It allows you to create cryptographically verifiable proofs of your conversations using PODs (Provable Object Datatypes).
 
-## Screenshots
-
-### PODs Collection in Zupass
-![PODs Collection](screenshots/ListingPODs.png)
-*Your ZuMemories are organized by date in your Zupass*
-
-### Minting a Memory POD
-![Minting Process](screenshots/PODminting.png)
-*The minting interface showing conversation details and folder organization*
-
-### Viewing a Memory POD
-![POD View](screenshots/PODview.png)
-*Detailed view of a minted memory with verification options*
-
 ## How it Works
 
 1. When Omi processes your conversations (through memory triggers or memory prompts), it sends a webhook to ZuMemories
@@ -58,3 +44,18 @@ The server will start on http://localhost:4000/
 - Integrates with [Omi's Memory System](https://docs.omi.me/docs/developer/apps/Introduction)
 - Uses [POD (Provable Object Datatype)](https://pod.org/pod/introduction) for cryptographic verification
 - Interfaces with Zupass for credential storage and verification
+
+
+## Screenshots
+
+### PODs Collection in Zupass
+![PODs Collection](screenshots/ListingPODs.png)
+*Your ZuMemories are organized by date in your Zupass*
+
+### Minting a Memory POD
+![Minting Process](screenshots/PODminting.png)
+*The minting interface showing conversation details and folder organization*
+
+### Viewing a Memory POD
+![POD View](screenshots/PODview.png)
+*Detailed view of a minted memory with verification options*
