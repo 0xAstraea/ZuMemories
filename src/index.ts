@@ -8,10 +8,10 @@ import { PODStore, ServerConfig } from "./types";
 
 // Define site config
 const siteConfig = {
-  zupass_display: "Example POD",
-  zupass_title: "Test POD",
+  zupass_display: "collectable",
+  zupass_title: "ZuMemories",
   zupass_image_url: "https://example.com/image.png",
-  issuer: "Test Issuer"
+  issuer: "ZuMemories"
 };
 
 // Define the server config
@@ -46,35 +46,40 @@ const app = new Elysia()
   .post("/create-pod", 
     async ({ body }) => {
       try {
+        // Format the date for the folder name
+        const today = new Date();
+        const folderName = `ZuMemories/${today.getDate().toString().padStart(2, '0')}-${
+          (today.getMonth() + 1).toString().padStart(2, '0')}-${
+          today.getFullYear()}`;
+
         // Create POD entries from JSON
         const podEntries = podEntriesFromJSON({
-          zupass_display: siteConfig.zupass_display,
-          zupass_title: siteConfig.zupass_title,
+          zupass_display: "collectable",
+          zupass_title: body.structured.title,
+          zupass_description: body.structured.overview,
           zupass_image_url: siteConfig.zupass_image_url,
           timestamp: new Date().toISOString(),
           issuer: siteConfig.issuer,
-          ...body.data  
         });
 
         const mintUrlGenerator = createMintUrl(serverConfig);
         const pod = createSignedPOD(podEntries, SIGNING_KEY);
-        const mintLink = await mintUrlGenerator(pod, body.folderName);
+        const mintLink = await mintUrlGenerator(pod, folderName);
         
         // Store the POD data
         podStore[pod.contentID.toString(16)] = {
           podEntries,
           signerPrivateKey: SIGNING_KEY,
-          podFolder: body.folderName,
+          podFolder: folderName,
           mintLink
         };
 
-        // Save PODs to persistent storage if needed
         await savePODs(podStore);
         
         return { 
           success: true, 
           mintLink,
-          contentID: pod.contentID.toString(16)  // Return contentID to client
+          contentID: pod.contentID.toString(16)
         };
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -83,8 +88,17 @@ const app = new Elysia()
     }, 
     {
       body: t.Object({
-        data: t.Record(t.String(), t.Any()),
-        folderName: t.String()
+        id: t.String(),
+        created_at: t.String(),
+        structured: t.Object({
+          title: t.String(),
+          overview: t.String(),
+          emoji: t.String(),
+          category: t.String(),
+          actionItems: t.Array(t.Any()),
+          events: t.Array(t.Any())
+        }),
+        // ... other fields can be optional
       })
     }
   )
