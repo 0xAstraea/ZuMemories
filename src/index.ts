@@ -5,12 +5,13 @@ import { POD, PODEntries, podEntriesFromJSON } from "@pcd/pod";
 import { PODPCD, PODPCDPackage } from "@pcd/pod-pcd";
 import { SemaphoreSignaturePCD, SemaphoreSignaturePCDPackage } from "@pcd/semaphore-signature-pcd";
 import { PODStore, ServerConfig } from "./types";
+import { staticPlugin } from '@elysiajs/static'
 
 // Define site config
 const siteConfig = {
   zupass_display: "collectable",
   zupass_title: "ZuMemories",
-  zupass_image_url: "https://example.com/image.png",
+  zupass_image_url: "https://lastlightbringer.xyz/images/zumemories.png",
   issuer: "ZuMemories"
 };
 
@@ -40,6 +41,10 @@ const app = new Elysia()
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type'],
     credentials: true
+  }))
+  .use(staticPlugin({
+    prefix: '', // This means files will be served from the root path
+    assets: 'public' // This is the directory where your static files are stored
   }))
   .get("/", () => "Hello Elysia")
   // First endpoint: Create POD from body data
