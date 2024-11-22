@@ -12,7 +12,7 @@ ZuMemories is a bridge between Omi's AI-powered conversations and Zupass's verif
    - Your Zupass ownership ID
    
 3. You receive a mint link to add this memory to your Zupass
-4. The POD is stored in your Zupass wallet under the `ZuMemories` folder, organized by date (e.g., `ZuMemories/21-11-2024`)
+4. The POD is stored in your Zupass under the `ZuMemories` folder, organized by date (e.g., `ZuMemories/21-11-2024`)
 
 ## Use Cases
 
